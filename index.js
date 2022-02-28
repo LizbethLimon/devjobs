@@ -3,8 +3,10 @@ require('./config/db');
 
 const express=require('express');
 const exphbs=require('express-handlebars');
+const handlebars=require('handlebars');
+const { allowInsecurePrototypeAccess } = require('@handlebars/allow-prototype-access');
 const path=require('path');
-const router=require('./routes');
+const router=require('./routes/index');
 const cookieParser=require('cookie-parser');
 const session=require('express-session');
 const MongoStore=require('connect-mongo')(session);
@@ -29,6 +31,7 @@ app.use(expressValidator());
 //habilitar handlebars como view
 app.engine('handlebars',
     exphbs.engine({
+        handlebars: allowInsecurePrototypeAccess(handlebars),
         defaultLayout:'layout',
         helpers: require('./helpers/handlebars')
     })
@@ -47,6 +50,7 @@ app.use(session({
     resave:false,
     saveUninitialized:false,
     store: new MongoStore({mongooseConnection: mongoose.connection})
+
 }));
 
 //inicializar passport
@@ -73,6 +77,7 @@ app.use((req,res,next)=>{
 app.use((error,req,res)=>{
     res.locals.mensaje=error.message;
     const status=error.status || 500;
+
     res.locals.status=status;
     res.status(status);
 
@@ -81,7 +86,7 @@ app.use((error,req,res)=>{
 
 //Dejar que heroku asigne el puerto
 const host = '0.0.0.0';
-const port= process.env.PORT;
+const port= process.env.PORT || 4000;
 
 app.listen(port,host,()=>{
     console.log('El servidor esta funcionando');
